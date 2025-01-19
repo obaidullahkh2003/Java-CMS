@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="content">
+    <main>
+        <div class="container-fluid px-4">
+            <h1 class="mt-4">Update Role</h1>
+            <ol class="breadcrumb mb-4">
+                <li class="breadcrumb-item"><a th:href="@{/roles}">Roles</a></li>
+                <li class="breadcrumb-item active">Update Role</li>
+            </ol>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <span>Update Role Information</span>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/roles/{id}(id=${roleDto.id})}" th:object="${roleDto}" method="post">
+                        <!-- Role Name -->
+                        <div class="form-group mb-3">
+                            <label for="name">Role Name</label>
+                            <input type="text" id="name" class="form-control" th:field="*{name}" placeholder="Enter role name" />
+                            <div th:if="${#fields.hasErrors('name')}" class="invalid-feedback">
+                                <span th:errors="*{name}">Role name is required</span>
+                            </div>
+                        </div>
+                        <!-- Submit Button -->
+                        <div class="form-group mb-3">
+                            <button type="submit" class="btn btn-primary">Update Role</button>
+                            <a href="/roles" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</html>
