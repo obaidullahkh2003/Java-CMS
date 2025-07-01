@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="content">
+    <main>
+        <div class="container-fluid px-4">
+            <h1 class="mt-4">Update User</h1>
+            <ol class="breadcrumb mb-4">
+                <li class="breadcrumb-item"><a th:href="@{/users}">Users</a></li>
+                <li class="breadcrumb-item active">Update User</li>
+            </ol>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <span>Update User Form</span>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/users/update/{id}(id=${userDto.id})}" th:object="${userDto}" method="post">
+                        <!-- First Name -->
+                        <div class="form-group mb-3">
+                            <label for="firstName">First Name</label>
+                            <input type="text" id="firstName" class="form-control" th:field="*{firstName}" />
+                            <div th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}" class="text-danger"></div>
+                        </div>
+
+                        <!-- Last Name -->
+                        <div class="form-group mb-3">
+                            <label for="lastName">Last Name</label>
+                            <input type="text" id="lastName" class="form-control" th:field="*{lastName}" />
+                            <div th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}" class="text-danger"></div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="form-group mb-3">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" class="form-control" th:field="*{email}" readonly/>
+                            <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="text-danger"></div>
+                        </div>
+
+                        <!-- Password Fields -->
+                        <div class="form-group mb-3 password-row row">
+                            <div class="col-md-6 password-container">
+                                <label for="password">Password</label>
+                                <input type="password" id="password" class="form-control" th:field="*{password}" placeholder="Leave empty to keep current password"/>
+                                <i id="passwordVisibilityButton" class="fas fa-eye toggle-password" onclick="togglePasswordVisibility()"></i>
+                                <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="text-danger"></div>
+                            </div>
+
+                            <div class="col-md-6 password-container">
+                                <label for="confirmPassword">Confirm Password</label>
+                                <input type="password" id="confirmPassword" class="form-control" th:field="*{confirmPassword}" placeholder="Leave empty to keep current password"/>
+                                <i id="confirmPasswordVisibilityButton" class="fas fa-eye toggle-password" onclick="togglePasswordConfirmVisibility()"></i>
+                                <div th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="text-danger"></div>
+                            </div>
+                        </div>
+
+                        <!-- Active Checkbox -->
+                        <div class="form-group mb-3">
+                            <label for="isActive">Is Active</label>
+                            <input type="checkbox" id="isActive" th:field="*{active}" class="form-check-input"/>
+                            <div th:if="${#fields.hasErrors('active')}" th:errors="*{active}" class="text-danger"></div>
+                        </div>
+
+                        <!-- Roles -->
+                        <div class="form-group mb-3">
+                            <label>Roles</label>
+                            <div th:each="role : ${roles}">
+                                <div class="form-check">
+                                    <input type="checkbox" th:id="'role_' + ${role.id}"
+                                           th:name="roles" th:value="${role.id}" class="form-check-input"
+                                           th:checked="${userRoleIds.contains(role.id)}"/>
+                                    <label th:for="'role_' + ${role.id}" th:text="${role.name}" class="form-check-label"></label>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="form-group mb-3">
+                            <button type="submit" class="btn btn-primary">Update User</button>
+                            <a href="/users" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</html>

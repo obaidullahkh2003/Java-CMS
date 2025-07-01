@@ -1,0 +1,13 @@
+package com.obaidullah.cms;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class GuidekApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}

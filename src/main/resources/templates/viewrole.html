@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="content">
+    <main>
+        <div class="container-fluid px-4">
+            <h1 class="mt-4">Role Details</h1>
+            <ol class="breadcrumb mb-4">
+                <li class="breadcrumb-item"><a th:href="@{/roles}">Roles</a></li>
+                <li class="breadcrumb-item active">View Role</li>
+            </ol>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <span>Role Information</span>
+                </div>
+                <div class="card-body">
+                    <!-- Role Name -->
+                    <div class="form-group mb-3">
+                        <label for="roleName">Role Name</label>
+                        <p th:text="${roleDto.name}" class="form-control-static"></p>
+                    </div>
+                    <!-- Back Button -->
+                    <div class="form-group mb-3">
+                        <a href="/roles" class="btn btn-secondary">Back</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</html>

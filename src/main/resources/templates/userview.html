@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="content">
+    <main>
+        <div class="container-fluid px-4">
+            <h1 class="mt-4">User Info</h1>
+            <ol class="breadcrumb mb-4">
+                <li class="breadcrumb-item"><a th:href="@{/users}">Users</a></li>
+                <li class="breadcrumb-item active">User Info</li>
+            </ol>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <span>User Information</span>
+                </div>
+                <div class="card-body">
+                    <!-- First Name -->
+                    <div class="form-group mb-3">
+                        <label for="firstName">First Name:</label>
+                        <p th:text="${userDto.firstName}" class="form-control-static"></p>
+                    </div>
+
+                    <!-- Last Name -->
+                    <div class="form-group mb-3">
+                        <label for="lastName">Last Name:</label>
+                        <p th:text="${userDto.lastName}" class="form-control-static"></p>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="form-group mb-3">
+                        <label for="email">Email:</label>
+                        <p th:text="${userDto.email}" class="form-control-static"></p>
+                    </div>
+
+                    <!-- Is Active -->
+                    <div class="form-group mb-3">
+                        <label for="isActive">Is Active:</label>
+                        <p th:text="${userDto.active ? 'Yes' : 'No'}" class="form-control-static"></p>
+                    </div>
+
+                    <!-- Roles -->
+                    <div class="form-group mb-3">
+                        <label>Roles:</label>
+                        <ul>
+                            <li th:each="role : ${roles}"
+                                th:if="${userRoleIds.contains(role.id)}"
+                                th:text="${role.name}"></li>
+                        </ul>
+                    </div>
+
+                    <!-- Cancel Button -->
+                    <div class="form-group mb-3">
+                        <a href="/users" class="btn btn-secondary">Back</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</html>
