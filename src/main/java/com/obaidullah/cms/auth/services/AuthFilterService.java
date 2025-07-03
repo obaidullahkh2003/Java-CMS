@@ -1,5 +1,8 @@
 package com.obaidullah.cms.auth.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.obaidullah.cms.auth.utils.AuthResponse;
+import com.obaidullah.cms.auth.utils.RefreshTokenRequest;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -15,19 +18,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 @Service
 public class AuthFilterService extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-
     private final UserDetailsService userDetailsService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public AuthFilterService(JwtService jwtService, UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
     }
-
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -35,45 +39,91 @@ public class AuthFilterService extends OncePerRequestFilter {
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         String jwt = null;
-        String username = null;
+        String refreshToken = null;
 
-        // Extract JWT token from cookies
+        // Extract cookies
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
-                if ("access_token".equals(cookie.getName())) {
-                    jwt = cookie.getValue();
-                    break;
+                switch (cookie.getName()) {
+                    case "access_token" -> jwt = cookie.getValue();
+                    case "refresh_token" -> refreshToken = cookie.getValue();
                 }
             }
         }
 
-        if (jwt == null) {
-            // No token found in cookies, continue filter chain
-            filterChain.doFilter(request, response);
-            return;
-        }
+        String username = null;
 
-        // extract username from JWT
-        username = jwtService.extractUsername(jwt);
+        // If access token exists
+        if (jwt != null) {
+            try {
+                username = jwtService.extractUsername(jwt);
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
+                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                authenticationToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
+                    if (jwtService.isTokenValid(jwt, userDetails)) {
+                        authenticate(userDetails, request);
+                    } else if (jwtService.isTokenExpired(jwt) && refreshToken != null) {
+                        // Try refreshing token
+                        AuthResponse newTokens = tryRefreshToken(refreshToken);
+                        if (newTokens != null) {
+                            // Set new access token cookie
+                            Cookie newAccessTokenCookie = new Cookie("access_token", newTokens.getAccessToken());
+                            newAccessTokenCookie.setHttpOnly(true);
+                            newAccessTokenCookie.setPath("/");
+                            newAccessTokenCookie.setMaxAge(60 * 60); // 1 hour
+                            response.addCookie(newAccessTokenCookie);
 
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                            // Re-extract username from new token and authenticate
+                            String refreshedUsername = jwtService.extractUsername(newTokens.getAccessToken());
+                            UserDetails refreshedUserDetails = userDetailsService.loadUserByUsername(refreshedUsername);
+                            authenticate(refreshedUserDetails, request);
+                        } else {
+                            response.sendRedirect("/api/auth/login");
+                            return;
+                        }
+                    }
+                }
+
+            } catch (Exception e) {
+                // Token is corrupted or tampered with
+                response.sendRedirect("/api/auth/login");
+                return;
             }
         }
 
         filterChain.doFilter(request, response);
     }
 
+    private void authenticate(UserDetails userDetails, HttpServletRequest request) {
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
+        authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+    }
+
+    private AuthResponse tryRefreshToken(String refreshToken) {
+        try {
+            URL url = new URL("http://localhost:8080/api/auth/refresh");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type", "application/json");
+
+            RefreshTokenRequest refreshTokenRequest = new RefreshTokenRequest(refreshToken);
+            objectMapper.writeValue(connection.getOutputStream(), refreshTokenRequest);
+
+            if (connection.getResponseCode() == 200) {
+                return objectMapper.readValue(connection.getInputStream(), AuthResponse.class);
+            } else {
+                return null;
+            }
+
+        } catch (IOException e) {
+            return null;
+        }
+    }
 }

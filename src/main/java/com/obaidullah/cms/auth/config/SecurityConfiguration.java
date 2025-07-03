@@ -1,6 +1,7 @@
 package com.obaidullah.cms.auth.config;
 
 import com.obaidullah.cms.auth.services.AuthFilterService;
+import com.obaidullah.cms.auth.services.JwtAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +22,8 @@ public class SecurityConfiguration {
 
     private final AuthFilterService authFilterService;
     private final AuthenticationProvider authenticationProvider;
+    private final JwtAuthenticationEntryPoint authenticationEntryPoint;
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -37,7 +40,7 @@ public class SecurityConfiguration {
                         .anyRequest()
                         .authenticated()
                 )
-
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
