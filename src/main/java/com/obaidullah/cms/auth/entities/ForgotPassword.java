@@ -1,17 +1,14 @@
 package com.obaidullah.cms.auth.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Date;
 
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
+@Data
 @Builder
 public class ForgotPassword {
 
@@ -26,5 +23,6 @@ public class ForgotPassword {
     private Date expirationTime;
 
     @OneToOne
+    @JoinColumn(name = "user_id")
     private User user;
 }

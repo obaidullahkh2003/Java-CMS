@@ -1,4 +1,12 @@
 package com.obaidullah.cms.auth.utils;
 
-public record ChangePassword(String password, String repeatPassword) {
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+public record ChangePassword(@NotBlank @Size(min = 6) String password,@NotBlank  String repeatPassword) {
+
+    public boolean passwordsMatch() {
+        return password.equals(repeatPassword);
+
+    }
 }

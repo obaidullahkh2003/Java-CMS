@@ -2,22 +2,27 @@ package com.obaidullah.cms.controller;
 
 import com.obaidullah.cms.auth.entities.RefreshToken;
 import com.obaidullah.cms.auth.entities.User;
+import com.obaidullah.cms.auth.repositories.UserRepository;
 import com.obaidullah.cms.auth.services.AuthService;
 import com.obaidullah.cms.auth.services.JwtService;
 import com.obaidullah.cms.auth.services.RefreshTokenService;
-import com.obaidullah.cms.auth.utils.AuthResponse;
-import com.obaidullah.cms.auth.utils.LoginRequest;
-import com.obaidullah.cms.auth.utils.RefreshTokenRequest;
-import com.obaidullah.cms.auth.utils.RegisterRequest;
+import com.obaidullah.cms.auth.utils.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.Objects;
+import java.util.Random;
 
 @Controller
 @RequestMapping("/api/auth")
@@ -27,11 +32,16 @@ public class AuthController {
     private final AuthService authService;
     private final RefreshTokenService refreshTokenService;
     private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
 
-    public AuthController(AuthService authService, RefreshTokenService refreshTokenService, JwtService jwtService) {
+
+    public AuthController(AuthService authService, RefreshTokenService refreshTokenService, JwtService jwtService, PasswordEncoder passwordEncoder, UserRepository userRepository) {
         this.authService = authService;
         this.refreshTokenService = refreshTokenService;
         this.jwtService = jwtService;
+        this.passwordEncoder = passwordEncoder;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/register")
@@ -135,5 +145,44 @@ public class AuthController {
     @GetMapping("/forgot")
     public String forgotPassword(){
         return "password";
+    }
+
+    @GetMapping("/verify-otp")
+    public String showVerifyOtpPage(@RequestParam String email, Model model) {
+        model.addAttribute("email", email);
+        return "otp";
+    }
+
+
+    @GetMapping("/reset-password")
+    public String showResetPasswordPage(
+            @RequestParam String email,
+            @RequestParam String token,
+            Model model) {
+
+        try {
+            if (!jwtService.isPasswordResetToken(token)) {
+                model.addAttribute("error", "Invalid password reset link");
+                return "error";
+            }
+
+            if (jwtService.isTokenExpired(token)) {
+                model.addAttribute("error", "Password reset link has expired");
+                return "error";
+            }
+
+            model.addAttribute("email", email);
+            model.addAttribute("token", token);
+            return "change-password";
+        } catch (Exception e) {
+            model.addAttribute("error", "Invalid password reset link");
+            return "error";
+        }
+    }
+
+
+    private Integer otpGenerator() {
+        Random random = new Random();
+        return random.nextInt(100_000, 999_999);
     }
 }
