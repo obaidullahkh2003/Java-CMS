@@ -1,8 +1,8 @@
 package com.obaidullah.cms.auth.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.obaidullah.cms.auth.utils.AuthResponse;
-import com.obaidullah.cms.auth.utils.RefreshTokenRequest;
+import com.obaidullah.cms.auth.dto.AuthResponse;
+import com.obaidullah.cms.auth.dto.RefreshTokenRequest;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;

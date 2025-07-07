@@ -1,4 +1,4 @@
-package com.obaidullah.cms.auth.utils;
+package com.obaidullah.cms.auth.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
